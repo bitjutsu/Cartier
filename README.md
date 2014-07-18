@@ -16,9 +16,9 @@ var onContextChanged = function (from, to, params) {
 };
 
 var routes = {
-  '/home': HomeContext,
-  '/:collection': CollectionContext,
-  '/:collection/:id': DrilldownContext
+    '/home': HomeContext,
+    '/:collection': CollectionContext,
+    '/:collection/:id': DrilldownContext
 };
 
 // Assume that you are currently at /home
