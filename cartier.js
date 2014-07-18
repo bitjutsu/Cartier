@@ -19,6 +19,7 @@
 
     var processRoutes = function (routes) {
         var paramRegex = /\/:([^\/]+)/g,
+            routeReplaceRegex = /:[^\/]+/g,
             processedRoutes = {},
             routePaths = Object.keys(routes),
             len = routePaths.length,
@@ -39,8 +40,7 @@
                 Construct the route matching regex like so:
                     '/tags/:guitarists/:name' -> '^/tags/([^\/]+)/([^\/]+)/?$'
             */
-            var routeReplaceRegex = /:[^\/]+/g,
-                routeRegex = route.replace(routeReplaceRegex, '([^\/]+)');
+            var routeRegex = route.replace(routeReplaceRegex, '([^\/]+)');
 
             routeRegex = routeRegex.replace(/(\/)/g, '\/');
             routeRegex = '^' + routeRegex + '\/?$';
@@ -101,17 +101,7 @@
             notFound: onNotFound,
             routes: processedRoutes,
 
-            onContextSwitch: function (cb) {
-                /* Set the onContextSwitch handler */
-                this.contextSwitch = cb;
-            },
-
-            onNotFound: function (cb) {
-                /* Fore? Oh, Four! */
-                this.notFound = cb;
-            },
-
-            navigate: function (location) {
+            navigate: function (location, isOldState) {
                 var lastContext = this.context,
                     params = {};
 
@@ -126,7 +116,17 @@
                 }
 
                 /* The Context it is A-Changin' */
-                window.history.pushState(this.context, '', this.location);
+                if (!isOldState) {
+                    /* Push a new history entry */
+                    window.history.pushState({
+                        path: this.location
+                    }, '', this.location);
+                } else {
+                    /* Replace the current entry to update the path in the state */
+                    window.history.replaceState({
+                        path: this.location
+                    }, '', this.location);
+                }
 
                 /* Notify listener of context switch. */
                 if (this.contextSwitch) {
@@ -135,20 +135,32 @@
             }
         };
 
-        ret.navigate(window.location.pathname);
+        ret.navigate(window.location.pathname, true);
+
+        /* Ad onpopstate listener */
+        window.addEventListener('popstate', function (event) {
+            if (event.state && event.state.path) {
+                ret.navigate(event.state.path, true);
+            } else {
+                /* Event state is null - we're on the entry point history entry */
+            }
+        });
 
         return ret;
     };
 
-    /*if (typeof define === 'function' && define.amd) {
+    if (typeof define === 'function' && define.amd) {
         // Export cartier for CommonJS/AMD
         define('cartier', [], function () {
             return cartier;
         });
-    } else {*/
+    } else if (module && module.exports) {
+        // Define cartier for Node/Browserify environments
+        module.exports = cartier;
+    } else {
         // Define cartier as a global.
         global.cartier = cartier;
-    //}
+    }
 
     return cartier;
 }(this));
