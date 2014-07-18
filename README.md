@@ -4,36 +4,32 @@ A(nother) small, unopinionated client-side routing library.
 
 Using
 -----
+Even though the Contexts in this example are just Strings, any value can be a Context - the most useful of which are JavaScript Objects.
 ```js
+var HomeContext = 'home',
+    CollectionContext = 'collection',
+    DrilldownContext = 'drilldown',
+    NotFoundContext = 'error';
 
 var onContextChanged = function (from, to, params) {
-    if (to && to.data === 'error') {
-        console.error('Oops');
-    } else {
-        console.log(JSON.stringify(from) + ' -> '
-            + JSON.stringify(to)
-            + (params ? ', ' + JSON.stringify(params) : ''));
-    }
+    console.log(from, '->', to, params);
 };
 
 var routes = {
-  '/home': 'home',
-  '/:collection': { data: 'abc' },
-  '/:collection/:id': { data: 'def' }
+  '/home': HomeContext,
+  '/:collection': CollectionContext,
+  '/:collection/:id': DrilldownContext
 };
 
-var onError = {
-    data: 'error'
-};
-
-var nav = new cartier(routes, onError, onContextChanged);
-// => null -> [whatever page you're currently on]
+// Assume that you are currently at /home
+var nav = new cartier(routes, NotFoundContext, onContextChanged);
+// => null -> home Object {}
 
 nav.navigate('/tests');
-// => [whatever page you started on] => {"data":"abc"}, {"collection":"tests"}
+// => home -> collection Object {collection: "tests"}
 
 nav.navigate('/tests/123');
-// => {"data":"abc"} -> {data: 'def'}, {"collection":"tests", "id": "123"}
+// => collection -> drilldown Object {collection: "tests", id: "123"}
 ```
 
 Limitations
