@@ -154,7 +154,7 @@
         define('cartier', [], function () {
             return cartier;
         });
-    } else if (module && module.exports) {
+    } else if (typeof module !== 'undefined' && module.exports) {
         // Define cartier for Node/Browserify environments
         module.exports = cartier;
     } else {
