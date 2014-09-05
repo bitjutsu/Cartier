@@ -56,18 +56,15 @@
         return processedRoutes;
     };
 
-    var cartier = function (routes, onNotFound, onContextSwitch) {
-        /* Process routes - extract parameters, etc */
-        var processedRoutes = processRoutes(routes);
-
-        var getContextForLocation = function (location) {
+    var cartier = function (onContextSwitch) {
+        var contextForLocation = function (location, routes) {
             /* Look through the routes mapping and find the first match */
             var routeKeys = Object.keys(routes),
                 len = routeKeys.length,
                 index = -1;
 
             while (++index < len) {
-                var route = processedRoutes[routeKeys[index]],
+                var route = routes[routeKeys[index]],
                     matches = [];
 
                 /* Don't do a check for !route.context because it being undefined
@@ -98,15 +95,28 @@
             location: void 0,
             context: null,
             contextSwitch: onContextSwitch,
-            notFound: onNotFound,
-            routes: processedRoutes,
+            notFound: null,
+            routes: {},
+
+            setRoutes: function (routes) {
+                this.routes = processRoutes(routes);
+            },
+
+            start: function () {
+                /* Starts the routing process: */
+                ret.navigate(window.location.pathname, true);
+            },
+
+            setNotFoundContext: function (notFoundContext) {
+                this.notFound = notFoundContext;
+            },
 
             navigate: function (location, isOldState) {
                 var lastContext = this.context,
                     params = {};
 
                 this.location = location;
-                var nextState = getContextForLocation(this.location);
+                var nextState = contextForLocation(this.location, this.routes);
 
                 if (nextState) {
                     this.context = nextState.context;
@@ -128,14 +138,12 @@
                     }, '', this.location);
                 }
 
-                /* Notify listener of context switch. */
+                /* Call the route changed handler */
                 if (this.contextSwitch) {
                     this.contextSwitch(lastContext, this.context, params);
                 }
             }
         };
-
-        ret.navigate(window.location.pathname, true);
 
         /* Ad onpopstate listener */
         window.addEventListener('popstate', function (event) {
