@@ -45,4 +45,4 @@ Also, currently only one callback for context switches is supported - although t
 
 License
 -------
-Ziptie may be freely distributed under the MIT license.
+Cartier may be freely distributed under the MIT license.
