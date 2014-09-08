@@ -4,8 +4,72 @@
 (function (global) {
     'use strict';
 
-    /* Helper function to map a keys array to a values array, creating an object */
-    var fuse = function (keys, vals) {
+    /* Export as a module for AMD, CommonJS/Node, or as a window Global */
+    modulify(function () {
+        /* Define the constructor for Cartier: */
+        function Cartier(doContextChange, notFoundContext) {
+            /* The router is useless without a context change handler. */
+            if (typeof doContextChange !== 'function') {
+                throw new TypeError('A context changed handler is required.');
+            }
+
+            this.onContextChange = doContextChange;
+            this.notFoundContext = notFoundContext;
+        }
+
+        /* Define the API: */
+        extend(Cartier.prototype, {
+            route: function (routes, notFoundContext) {
+                /* If notFoundContext is undefined, use the existing one. */
+                notFoundContext = notFoundContext || this.notFoundContext;
+
+                /* Add the routes. */
+                this.routes = processRoutes(routes);
+
+                /* Set the notFoundContext. */
+                this.notFoundContext = notFoundContext;
+
+                /* Kick things off: */
+                var url = global.location.pathname;
+
+                /* (Pass false to signal that this is not a new context.) */
+                baseNavigate(url, this, false);
+            },
+
+            setNotFoundContext: function (notFoundContext) {
+                this.notFoundContext = notFoundContext;
+            },
+
+            navigate: function (url) {
+                /* Backup the outgoing context. */
+                var previousContext = this.context;
+
+                baseNavigate(url, this);
+
+                /* Call the context change callback: */
+                this.onContextChange(previousContext, this.context, this.params);
+            }
+        });
+
+        return Cartier;
+    });
+
+    /* Utility and helper methods: */
+    function extend(object, source) {
+        var index = -1,
+            props = Object.keys(source),
+            length = props.length;
+
+        while (++index < length) {
+            var key = props[index];
+            object[key] = source[key];
+        }
+
+        return object;
+    }
+
+    /* Map a keys array to a values array, creating an object */
+    function fuse(keys, vals) {
         var obj = {},
             index = -1,
             len = keys.length;
@@ -15,160 +79,155 @@
         }
 
         return obj;
-    };
+    }
 
-    var processRoutes = function (routes) {
-        var paramRegex = /\/:([^\/]+)/g,
-            routeReplaceRegex = /:[^\/]+/g,
-            processedRoutes = {},
-            routePaths = Object.keys(routes),
-            len = routePaths.length,
-            index = -1;
+    /* Get all capture group matches from a regular expression. */
+    function getAllMatches(regex, str) {
+        var matches = void 0,
+            results = [];
 
-        while (++index < len) {
-            var route = routePaths[index];
+        if (!regex.global) {
+            var matches = regex.exec(str);
 
-            var matches = [],
-                params = [];
-            while (matches = paramRegex.exec(route)) {
-                if (matches[1]) {
-                    params.push(matches[1]);
-                }
+            matches.shift();
+
+            return matches;
+        }
+
+        /* do-while because a match needs to be tried at least once - and
+        also because do-whiles are badass. */
+        do {
+            /* Execute the Regular Expression: */
+            matches = regex.exec(str);
+
+            if (matches != null && matches.length > 1) {
+                /* Grab the value of the first capture group: */
+                results.push(matches[1]);
             }
+        } while (matches != null);
 
-            /*
-                Construct the route matching regex like so:
-                    '/tags/:guitarists/:name' -> '^/tags/([^\/]+)/([^\/]+)/?$'
-            */
-            var routeRegex = route.replace(routeReplaceRegex, '([^\/]+)');
+        return results;
+    }
 
-            routeRegex = routeRegex.replace(/(\/)/g, '\/');
-            routeRegex = '^' + routeRegex + '\/?$';
+    function processRoutes(routes) {
+        /* Convert the routes to regular expressions and extract parameters: */
+        var routeKeys = Object.keys(routes),
+            length = routeKeys.length,
+            index = -1,
+            processedRoutes = {};
 
-            processedRoutes[route] = {
-                params: params,
-                /* TODO construct regex from string like so: */
-                match: new RegExp(routeRegex),
-                context: routes[route]
-            };
+        /* Construct the processed route object */
+        while (++index < length) {
+            var key = routeKeys[index];
+
+            processedRoutes[key] = processRoute(key, routes[key]);
         }
 
         return processedRoutes;
-    };
-
-    var cartier = function (onContextSwitch) {
-        var contextForLocation = function (location, routes) {
-            /* Look through the routes mapping and find the first match */
-            var routeKeys = Object.keys(routes),
-                len = routeKeys.length,
-                index = -1;
-
-            while (++index < len) {
-                var route = routes[routeKeys[index]],
-                    matches = [];
-
-                /* Don't do a check for !route.context because it being undefined
-                could be a desired behaviour. */
-                if (!route || !route.match) {
-                    continue;
-                }
-
-                /* Save capture groups (parameter values) */
-                matches = route.match.exec(location);
-
-                if (!matches) {
-                    continue;
-                }
-
-                /* Remove the first match - we don't want it. */
-                matches.shift();
-
-                /* Map the parameters to the keys */
-                return {
-                    context: route.context,
-                    params: fuse(route.params, matches)
-                };
-            }
-        };
-
-        var ret = {
-            location: void 0,
-            context: null,
-            contextSwitch: onContextSwitch,
-            notFound: null,
-            routes: {},
-
-            setRoutes: function (routes) {
-                this.routes = processRoutes(routes);
-            },
-
-            start: function () {
-                /* Starts the routing process: */
-                ret.navigate(window.location.pathname, true);
-            },
-
-            setNotFoundContext: function (notFoundContext) {
-                this.notFound = notFoundContext;
-            },
-
-            navigate: function (location, isOldState) {
-                var lastContext = this.context,
-                    params = {};
-
-                this.location = location;
-                var nextState = contextForLocation(this.location, this.routes);
-
-                if (nextState) {
-                    this.context = nextState.context;
-                    params = nextState.params;
-                } else {
-                    this.context = onNotFound;
-                }
-
-                /* The Context it is A-Changin' */
-                if (!isOldState) {
-                    /* Push a new history entry */
-                    window.history.pushState({
-                        path: this.location
-                    }, '', this.location);
-                } else {
-                    /* Replace the current entry to update the path in the state */
-                    window.history.replaceState({
-                        path: this.location
-                    }, '', this.location);
-                }
-
-                /* Call the route changed handler */
-                if (this.contextSwitch) {
-                    this.contextSwitch(lastContext, this.context, params);
-                }
-            }
-        };
-
-        /* Ad onpopstate listener */
-        window.addEventListener('popstate', function (event) {
-            if (event.state && event.state.path) {
-                ret.navigate(event.state.path, true);
-            } else {
-                /* Event state is null - we're on the entry point history entry */
-            }
-        });
-
-        return ret;
-    };
-
-    if (typeof define === 'function' && define.amd) {
-        // Export cartier for CommonJS/AMD
-        define('cartier', [], function () {
-            return cartier;
-        });
-    } else if (typeof module !== 'undefined' && module.exports) {
-        // Define cartier for Node/Browserify environments
-        module.exports = cartier;
-    } else {
-        // Define cartier as a global.
-        global.cartier = cartier;
     }
 
-    return cartier;
-}(this));
+    function processRoute(route, context) {
+        var params = extractParameters(route),
+            match = convertToRegularExpression(route);
+
+        return {
+            params: params,
+            match: match,
+            context: context
+        };
+    }
+
+    function extractParameters(route) {
+        /* Create a RegExp object to keep track of match position: */
+        var paramsRegex = new RegExp(/:([^\/]+)/g);
+
+        return getAllMatches(paramsRegex, route);
+    }
+
+    /* Converts a route into a Regular Expression. */
+    function convertToRegularExpression(route) {
+        var paramsReplacementRegex = new RegExp(/:[^\/]+/g),
+            /* This will match parameters in the route */
+            paramsMatchRegexString = '([^/]+)',
+            innerRegex = route.replace(paramsReplacementRegex, paramsMatchRegexString);
+        
+        /* The route starts and ends with innerRegex and- trailing slash optional: */
+        var processedRoute = '^' + innerRegex + '\/?$';
+
+        return new RegExp(processedRoute);
+    }
+
+    function baseNavigate(location, router, isNewContext) {
+        /* Default to true for isNewContext (results in a pushState): */
+        if (typeof isNewContext !== 'boolean') {
+            isNewContext = true;
+        }
+
+        /* Get the context and parameters: */
+        router.state = getState(location, router.routes) || void 0;
+        router.context = getContext(router.state) || router.notFoundContext;
+        router.params = getParamValues(location, router.state);
+        /* Mutate the history and pass false as isNewContext. */
+        mutateHistory(location, isNewContext);
+    }
+
+    function mutateHistory(location, isNewContext) {
+        /* Pick history mutator function using isNewContext */
+        var mutator = isNewContext ? 'pushState' : 'replaceState';
+        global.history[mutator]({ path: location }, '', location);
+    }
+
+    function getContext(state) {
+        if (typeof state !== 'object') {
+            return void 0;
+        }
+
+        return state.context;
+    }
+
+    function getState(location, routes) {
+        var keys = Object.keys(routes),
+            length = keys.length,
+            index = -1;
+
+        /* Look through all of the routes in order for the first match. */
+        while (++index < length) {
+            var key = keys[index],
+                route = routes[key];
+
+            if (route.match.test(location)) {
+                /* Return the first matched state. */
+                return route
+            }
+        }
+
+        /* No match found. */
+        return void 0;
+    }
+
+    /* Maps parameter names to parameter values. */
+    function getParamValues(location, state) {
+        if (typeof state !== 'object') {
+            /* Handle undefined/null notFoundContext */
+            return void 0;
+        }
+
+        var paramValues = getAllMatches(state.match, location);
+
+        return fuse(state.params, paramValues);
+    }
+
+    /* Exports Cartier for a subset of the plethora of module systems. */
+    function modulify(factory) {
+        if (typeof module === 'object') {
+            /* Export for Browserify: */
+            module.exports = factory();
+        } else if (typeof define === 'function' && define.amd) {
+            /* Export for amd: */
+            define('cartier', factory);
+        } else {
+            /* Extend the global scope to include cartier: */
+            global.cartier = factory();
+        }
+    }
+}(window));

@@ -1,6 +1,6 @@
 Cartier
 =======
-A(nother) small, unopinionated client-side routing library.
+A small, unopinionated client-side routing library.
 
 Using
 -----
@@ -10,7 +10,7 @@ var onContextChanged = function (from, to, params) {
     console.log(from, '->', to, params);
 };
 
-var nav = new cartier(onContextChanged);
+var router = new cartier(onContextChanged);
 
 var HomeContext = 'home',
     CollectionContext = 'collection',
@@ -23,18 +23,16 @@ var routes = {
     '/:collection/:id': DrilldownContext
 };
 
-/* Set up the contexts: */
-cartier.setRoutes(routes);
-cartier.setNotFoundContext(NotFoundContext);
+/* Set up the 404 context. */
+router.setNotFoundContext(NotFoundContext);
 
-/* For this example, assume that you are already at /home */
-cartier.start();
-// => null -> home Object {}
+/* Add the routes and start routing. */
+router.route(routes);
 
-nav.navigate('/tests');
+router.navigate('/tests');
 // => home -> collection Object {collection: "tests"}
 
-nav.navigate('/tests/123');
+router.navigate('/tests/123');
 // => collection -> drilldown Object {collection: "tests", id: "123"}
 ```
 
