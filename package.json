@@ -1,0 +1,39 @@
+{
+  "name": "Cartier",
+  "version": "0.0.0",
+  "description": "A small, unopinionated client-side router.",
+  "main": "cartier.js",
+  "scripts": {
+    "test": "gulp test",
+    "build": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitjutsu/Cartier.git"
+  },
+  "keywords": [
+    "routing",
+    "router",
+    "clientside",
+    "client",
+    "browser"
+  ],
+  "author": "Adam Carruthers <adam@bitjutsu.ca>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bitjutsu/Cartier/issues"
+  },
+  "homepage": "https://github.com/bitjutsu/Cartier",
+  "devDependencies": {
+    "connect": "^3.1.1",
+    "gulp": "^3.8.8",
+    "gulp-rename": "^1.2.0",
+    "gulp-shell": "^0.2.9",
+    "gulp-uglify": "^1.0.1",
+    "mocha": "^1.21.4",
+    "mocha-phantomjs": "^3.5.0",
+    "phantomjs": "^1.9.7",
+    "serve-static": "^1.6.1",
+    "should": "^4.0.4"
+  }
+}
