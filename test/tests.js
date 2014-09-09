@@ -93,4 +93,11 @@ describe('Cartier', function () {
             nav.params['drilldown'].should.be.exactly('456').and.be.a.String;
         });
     });
+
+    after(function () {
+        /* Restore the window location after tests are completed. */
+        var nav = new cartier(noop);
+        nav.route({'/test/runner.html': ''});
+        nav.navigate('/test/runner.html');
+    });
 });

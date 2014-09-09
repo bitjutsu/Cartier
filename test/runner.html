@@ -12,19 +12,18 @@
         <script src="../node_modules/should/should.js"></script>
 
         <script>
-            mocha.ui('bdd');
-            mocha.reporter('spec');
+        mocha.ui('bdd');
         </script>
 
         <script src="../cartier.js"></script>
         <script src="tests.js"></script>
 
         <script>
-            if (window.mochaPhantomJS) {
-                mochaPhantomJS.run();
-            } else {
-                mocha.run();
-            }
+        if (window.mochaPhantomJS) {
+            mochaPhantomJS.run();
+        } else {
+            mocha.run();
+        }
         </script>
     </body>
 </html>

@@ -16,11 +16,8 @@
         var server = connect().use(serveStatic(__dirname)).listen(3000);
 
         var stream = gulp.start(shell.task([
-            'mocha-phantomjs -R spec http://localhost:3000/test/runner.html'
+            'mocha-phantomjs -R spec -k test/hooks.js http://localhost:3000/test/runner.html'
         ]));
-
-        /* TODO: close server after shell command finished execution. */
-        /* server.close(); */
     });
 
     gulp.task('build', function () {
