@@ -41,6 +41,11 @@
             },
 
             navigate: function (url) {
+                /* If route() hasn't already been called, throw an error: */
+                if (!this.routes) {
+                    throw new Error('Routes are not configured: call route() first.');
+                }
+
                 /* Backup the outgoing context. */
                 var previousContext = this.context;
 

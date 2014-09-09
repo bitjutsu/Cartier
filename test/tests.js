@@ -92,6 +92,13 @@ describe('Cartier', function () {
             nav.params['param'].should.be.exactly('123').and.be.a.String;
             nav.params['drilldown'].should.be.exactly('456').and.be.a.String;
         });
+
+        it('should complain about not calling route() first', function () {
+            /* Clear routes: */
+            nav.routes = void 0;
+
+            nav.navigate.bind(nav, '/').should.throw(/route/);
+        });
     });
 
     after(function () {
