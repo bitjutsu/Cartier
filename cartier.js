@@ -15,6 +15,21 @@
 
             this.onContextChange = doContextChange;
             this.notFoundContext = notFoundContext;
+
+            /* Add popstate listener: */
+            var self = this;
+            global.addEventListener('popstate', function () {
+                if (event.state && event.state.path) {
+                    /* Back up the current context: */
+                    var previousContext = self.context;
+
+                    /* Navigate (with isNewContext = false): */
+                    baseNavigate(event.state.path, self, false);
+
+                    /* Call the onContextChange callback: */
+                    self.onContextChange(previousContext, self.context, self.params);
+                }
+            });
         }
 
         /* Define the API: */
