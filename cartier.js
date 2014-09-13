@@ -34,6 +34,9 @@
 
                 /* (Pass false to signal that this is not a new context.) */
                 baseNavigate(url, this, false);
+
+                /* Call the context change callback: */
+                this.onContextChange(null, this.context, this.params);
             },
 
             setNotFoundContext: function (notFoundContext) {
