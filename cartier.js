@@ -18,16 +18,23 @@
 
             /* Add popstate listener: */
             var self = this;
-            global.addEventListener('popstate', function () {
+            global.addEventListener('popstate', function (event) {
                 if (event.state && event.state.path) {
-                    /* Back up the current context: */
-                    var previousContext = self.context;
-
                     /* Navigate (with isNewContext = false): */
                     baseNavigate(event.state.path, self, false);
+                }
+            });
 
-                    /* Call the onContextChange callback: */
-                    self.onContextChange(previousContext, self.context, self.params);
+            /* Add hashchange listener */
+            global.addEventListener('hashchange', function (event) {
+                if (event.newURL) {
+                    /* Get the part after the #: */
+                    var route = event.newURL.split('#')[1];
+
+                    /* Do routing */
+                    /* This is not a new context because the hashchange is 
+                    it's own history entry, so we pass false. */
+                    baseNavigate(route, self, false);
                 }
             });
         }
@@ -49,9 +56,6 @@
 
                 /* (Pass false to signal that this is not a new context.) */
                 baseNavigate(url, this, false);
-
-                /* Call the context change callback: */
-                this.onContextChange(null, this.context, this.params);
             },
 
             setNotFoundContext: function (notFoundContext) {
@@ -64,13 +68,7 @@
                     throw new Error('Routes are not configured: call route() first.');
                 }
 
-                /* Backup the outgoing context. */
-                var previousContext = this.context;
-
                 baseNavigate(url, this);
-
-                /* Call the context change callback: */
-                this.onContextChange(previousContext, this.context, this.params);
             }
         });
 
@@ -186,12 +184,18 @@
             isNewContext = true;
         }
 
+        /* Backup the outgoing context: */
+        var previousContext = router.context;
+
         /* Get the context and parameters: */
         router.state = getState(location, router.routes) || void 0;
         router.context = getContext(router.state) || router.notFoundContext;
         router.params = getParamValues(location, router.state);
         /* Mutate the history and pass false as isNewContext. */
         mutateHistory(location, isNewContext);
+
+        /* Call the context change callback: */
+        router.onContextChange(previousContext, router.context, router.params);
     }
 
     function mutateHistory(location, isNewContext) {
