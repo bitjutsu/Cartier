@@ -1,6 +1,6 @@
 {
   "name": "cartier",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A small, unopinionated client-side router.",
   "main": "cartier.js",
   "scripts": {
