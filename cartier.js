@@ -184,18 +184,36 @@
             isNewContext = true;
         }
 
+        var path = location;
+
         /* Backup the outgoing context: */
         var previousContext = router.context;
 
+        /* If the location doesn't have a leading slash, append it to the
+        current window pathname: */
+        if (location.substring(0, 1) != '/') {
+            path = window.location.pathname;
+
+            /* Add a trailing slash to path if necessary */
+            path += (lastCharacter(path) == '/') ? '' :  '/';
+
+            /* Add the relative path to path: */
+            path += location;
+        }
+
         /* Get the context and parameters: */
-        router.state = getState(location, router.routes) || void 0;
+        router.state = getState(path, router.routes) || void 0;
         router.context = getContext(router.state) || router.notFoundContext;
-        router.params = getParamValues(location, router.state);
+        router.params = getParamValues(path, router.state);
         /* Mutate the history and pass false as isNewContext. */
-        mutateHistory(location, isNewContext);
+        mutateHistory(path, isNewContext);
 
         /* Call the context change callback: */
         router.onContextChange(previousContext, router.context, router.params);
+    }
+
+    function lastCharacter(str) {
+        return str.charAt(str.length - 1);
     }
 
     function mutateHistory(location, isNewContext) {

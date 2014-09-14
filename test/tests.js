@@ -93,6 +93,24 @@ describe('Cartier', function () {
             nav.params['drilldown'].should.be.exactly('456').and.be.a.String;
         });
 
+        it('should navigate to relative paths from a path with no trailing slash', function () {
+            nav.navigate('/test/123');
+            nav.navigate('456');
+
+            nav.context.should.be.exactly('doubleParam');
+            nav.params['param'].should.be.exactly('123').and.be.a.String;
+            nav.params['drilldown'].should.be.exactly('456').and.be.a.String;
+        });
+
+        it('should navigate to relative paths with from a path with a trailing slash', function () {
+            nav.navigate('/test/123/');
+            nav.navigate('456');
+
+            nav.context.should.be.exactly('doubleParam');
+            nav.params['param'].should.be.exactly('123').and.be.a.String;
+            nav.params['drilldown'].should.be.exactly('456').and.be.a.String;
+        });
+
         it('should complain about not calling route() first', function () {
             /* Clear routes: */
             nav.routes = void 0;
