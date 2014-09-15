@@ -111,6 +111,18 @@ describe('Cartier', function () {
             nav.params['drilldown'].should.be.exactly('456').and.be.a.String;
         });
 
+        it('should not call doContextChange when navigating to the same route', function (done) {
+            nav.navigate('/test');
+
+            nav.onContextChange = function () {
+                done(new Error('Context change was called.'));
+            }
+
+            nav.navigate('/test');
+
+            window.setTimeout(done, 100);
+        });
+
         it('should complain about not calling route() first', function () {
             /* Clear routes: */
             nav.routes = void 0;

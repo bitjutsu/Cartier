@@ -201,15 +201,50 @@
             path += location;
         }
 
-        /* Get the context and parameters: */
-        router.state = getState(path, router.routes) || void 0;
-        router.context = getContext(router.state) || router.notFoundContext;
-        router.params = getParamValues(path, router.state);
+        /* Get the new state and parameters: */
+        var newState = getState(path, router.routes),
+            newParams = getParamValues(path, newState);
+
+        /* If the state hasn't changed and the params haven't changed, don't navigate. */
+        /* Don't need to check equality on context because state contains context. */
+        if (newState === router.state && compareParamsByValue(newParams, router.params)) {
+            return;
+        }
+
+        router.state = newState;
+        router.context = getContext(newState) || router.notFoundContext;
+        router.params = newParams;
+
         /* Mutate the history and pass false as isNewContext. */
         mutateHistory(path, isNewContext);
 
         /* Call the context change callback: */
         router.onContextChange(previousContext, router.context, router.params);
+    }
+
+    function compareParamsByValue(first, second) {
+        if (typeof first != 'object' || typeof second != 'object') {
+            return false;
+        }
+
+        /* It can be assumed that the keys will always be the same, because 
+        this is comparing params objects where the states are the same
+        i.e. the route is the same, meaning the param keys will be the same. */
+        var firstKeys = Object.keys(first),
+            length = firstKeys.length,
+            index = -1;
+
+        while (++index < length) {
+            var key = firstKeys[key],
+                firstVal = first[key],
+                secondVal = second[key];
+
+            if (firstVal != secondVal) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     function lastCharacter(str) {
