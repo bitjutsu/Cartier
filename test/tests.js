@@ -145,6 +145,13 @@ describe('Cartier', function () {
             window.setTimeout(done, 10);
         });
 
+        it('should preserve query parameters and route correctly', function () {
+            nav.navigate('/test?foo=bar');
+
+            window.location.search.should.be.exactly('?foo=bar');
+            nav.context.should.be.exactly('test');
+        });
+
         it('should complain about not calling route() first', function () {
             /* Clear routes: */
             nav.routes = void 0;

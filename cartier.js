@@ -54,7 +54,7 @@
                 this.notFoundContext = notFoundContext;
 
                 /* Kick things off: */
-                var url = global.location.pathname;
+                var url = global.location.pathname + global.location.search;
 
                 /* (Pass false to signal that this is not a new context.) */
                 baseNavigate(url, this, false);
@@ -173,9 +173,9 @@
             /* This will match parameters in the route */
             paramsMatchRegexString = '([^/]+)',
             innerRegex = route.replace(paramsReplacementRegex, paramsMatchRegexString);
-        
-        /* The route starts and ends with innerRegex and- trailing slash optional: */
-        var processedRoute = '^' + innerRegex + '\/?$';
+
+        /* The route starts and ends with innerRegex - trailing slash and query params are optional: */
+        var processedRoute = '^' + innerRegex + '\/?(?:\\?.*)?$';
 
         return new RegExp(processedRoute);
     }
@@ -186,22 +186,10 @@
             isNewContext = true;
         }
 
-        var path = location;
+        var path = getPath(location);
 
         /* Backup the outgoing context: */
         var previousContext = router.context;
-
-        /* If the location doesn't have a leading slash, append it to the
-        current window pathname: */
-        if (location.substring(0, 1) != '/') {
-            path = window.location.pathname;
-
-            /* Add a trailing slash to path if necessary */
-            path += (lastCharacter(path) == '/') ? '' :  '/';
-
-            /* Add the relative path to path: */
-            path += location;
-        }
 
         /* Get the new state and parameters: */
         var newState = getState(path, router.routes),
@@ -226,6 +214,23 @@
 
         /* Call the context change callback: */
         router.onContextChange(previousContext, router.context, router.params);
+    }
+
+    function getPath(location) {
+        /* If the location doesn't have a leading slash, append it to the
+        current window pathname: */
+        var path = location;
+        if (location.substring(0, 1) != '/') {
+            path = global.location.pathname;
+
+            /* Add a trailing slash to path if necessary */
+            path += (lastCharacter(path) == '/') ? '' :  '/';
+
+            /* Add the relative path to path: */
+            path += location;
+        }
+
+        return path;
     }
 
     function paramsAreTheSame(first, second) {
