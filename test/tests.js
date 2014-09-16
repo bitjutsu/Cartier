@@ -62,7 +62,7 @@ describe('Cartier', function () {
         var nav = void 0;
         var routes = void 0;
 
-        before(function () {
+        beforeEach(function () {
             nav = new cartier(noop, '404');
             nav.route({
                 '/': 'root',
@@ -115,12 +115,34 @@ describe('Cartier', function () {
             nav.navigate('/test');
 
             nav.onContextChange = function () {
-                done(new Error('Context change was called.'));
+                done('Context change was called.');
             }
 
             nav.navigate('/test');
 
-            window.setTimeout(done, 100);
+            window.setTimeout(done, 10);
+        });
+
+        it('should call doContextChange when params change', function (done) {
+            nav.navigate('/test/123/456');
+
+            nav.onContextChange = function () {
+                done();
+            };
+
+            /* Allow for onContextChange to be set (?): */
+            window.setTimeout(nav.navigate.bind(nav, '/test/123/567'), 10);
+        });
+
+        it('should not call doContextChange when params don\'t change', function (done) {
+            nav.navigate('/test/123/456');
+
+            nav.onContextChange = function () {
+                done('Context change was called.');
+            };
+
+            nav.navigate('/test/123/456');
+            window.setTimeout(done, 10);
         });
 
         it('should complain about not calling route() first', function () {

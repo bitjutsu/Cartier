@@ -29,12 +29,14 @@
             global.addEventListener('hashchange', function (event) {
                 if (event.newURL) {
                     /* Get the part after the #: */
-                    var route = event.newURL.split('#')[1];
+                    var route = event.newURL.split('#!')[1];
 
-                    /* Do routing */
-                    /* This is not a new context because the hashchange is 
-                    it's own history entry, so we pass false. */
-                    baseNavigate(route, self, false);
+                    if (route != null && route.length != 0) {
+                        /* Do routing */
+                        /* This is not a new context because the hashchange is 
+                        it's own history entry, so we pass false. */
+                        baseNavigate(route, self, false);
+                    }
                 }
             });
         }
@@ -207,7 +209,11 @@
 
         /* If the state hasn't changed and the params haven't changed, don't navigate. */
         /* Don't need to check equality on context because state contains context. */
-        if (newState === router.state && compareParamsByValue(newParams, router.params)) {
+        if (newState === router.state && paramsAreTheSame(newParams, router.params)) {
+            /* Replace the state - clears the hash since we're navigating from 
+            one page to the same page. */
+            mutateHistory(path, false);
+
             return;
         }
 
@@ -222,7 +228,7 @@
         router.onContextChange(previousContext, router.context, router.params);
     }
 
-    function compareParamsByValue(first, second) {
+    function paramsAreTheSame(first, second) {
         if (typeof first != 'object' || typeof second != 'object') {
             return false;
         }
@@ -230,12 +236,12 @@
         /* It can be assumed that the keys will always be the same, because 
         this is comparing params objects where the states are the same
         i.e. the route is the same, meaning the param keys will be the same. */
-        var firstKeys = Object.keys(first),
-            length = firstKeys.length,
+        var keys = Object.keys(first),
+            length = keys.length,
             index = -1;
 
         while (++index < length) {
-            var key = firstKeys[key],
+            var key = keys[index],
                 firstVal = first[key],
                 secondVal = second[key];
 
