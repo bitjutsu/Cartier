@@ -36,6 +36,12 @@ router.navigate('/tests/123');
 // => collection -> drilldown Object {collection: "tests", id: "123"}
 ```
 
+And then in your HTML documents:
+```html
+<a href="#!/tests">Click Here!</a>
+<a href="#!/tests/123">(Or Here)</a>
+```
+
 Testing
 -------
 After cloning this repo, grab all of the dependencies like so:
