@@ -42,6 +42,8 @@ And then in your HTML documents:
 <a href="#!/tests/123">(Or Here)</a>
 ```
 
+Note that the `#!` will not appear in the URL - this is just Cartier's chosen method of intercepting routes without leaving the page.
+
 Testing
 -------
 After cloning this repo, grab all of the dependencies like so:
