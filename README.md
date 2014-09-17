@@ -2,7 +2,7 @@ Cartier
 =======
 A small, unopinionated client-side routing library.
 
-[![](http://img.shields.io/npm/v/cartier.svg?style=flat-square)](https://npmsjs.org/package/cartier)
+[![](http://img.shields.io/npm/v/cartier.svg?style=flat-square)](https://npmjs.org/package/cartier)
 
 Using
 -----
