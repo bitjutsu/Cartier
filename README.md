@@ -2,6 +2,8 @@ Cartier
 =======
 A small, unopinionated client-side routing library.
 
+[![](http://img.shields.io/npm/v/cartier.svg?style=flat-square)](https://npmsjs.org/package/cartier)
+
 Using
 -----
 Even though the Contexts in this example are just Strings, any value can be a Context - the most useful of which are JavaScript Objects.
