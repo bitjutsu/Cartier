@@ -223,14 +223,52 @@
         if (location.substring(0, 1) != '/') {
             path = global.location.pathname;
 
-            /* Add a trailing slash to path if necessary */
-            path += (lastCharacter(path) == '/') ? '' :  '/';
-
-            /* Add the relative path to path: */
-            path += location;
+            path += '/' + location;
         }
 
-        return path;
+        /* Clean up duplicated slashes and relative paths. */
+        return normalizePath(path);
+    }
+
+    /* The only special part of paths that is respected is '..' for 'up' */
+    function normalizePath(path) {
+        var trailingSlash = lastCharacter(path) === '/',
+            parts = path.split('/'),
+            length = parts.length,
+            index = -1,
+            pathSoFar = [];
+
+        while (++index < length) {
+            var component = parts[index];
+
+            if (component.length < 1) {
+                continue;
+            }
+
+            if (component === '..' && pathSoFar.length < 1) {
+                /* Can't go any higher than root! */
+                continue;
+            }
+
+            if (component === '..') {
+                /* Get rid of that path component, we don't need it. */
+                pathSoFar.pop();
+                continue;
+            }
+
+            pathSoFar.push(component);
+        }
+
+        var result = pathSoFar.join('/');
+        if (result.charAt(0) != '/') {
+            result = '/' + result;
+        }
+
+        if (trailingSlash && lastCharacter(result) != '/') {
+            result += '/';
+        }
+
+        return result;
     }
 
     function paramsAreTheSame(first, second) {

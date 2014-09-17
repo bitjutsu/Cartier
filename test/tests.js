@@ -152,6 +152,23 @@ describe('Cartier', function () {
             nav.context.should.be.exactly('test');
         });
 
+        it('should handle relative paths', function () {
+            nav.navigate('/test');
+            nav.navigate('123/456//../567/');
+
+            nav.context.should.be.exactly('doubleParam');
+            nav.params['param'].should.be.exactly('123').and.be.a.String;
+            nav.params['drilldown'].should.be.exactly('567').and.be.a.String;
+            window.location.pathname.should.be.exactly('/test/123/567/');
+        });
+
+        it('should handle relative paths that navigate "up" above root', function () {
+            nav.navigate('/test');
+            nav.navigate('../../..//../');
+
+            nav.context.should.be.exactly('root');
+        });
+
         it('should complain about not calling route() first', function () {
             /* Clear routes: */
             nav.routes = void 0;
